@@ -17,21 +17,10 @@ function Get-StorageContext {
             return New-AzStorageContext -ConnectionString $connectionString
         } elseif ($storageAccountName) {
             # For Azure with managed identity - use OAuth authentication
+            # Authentication is handled in profile.ps1 for better performance and to avoid race conditions
             Write-Host "Using managed identity for storage access with account: $storageAccountName"
             
-            # Get the client ID for the user-assigned managed identity
-            $clientId = $env:AZURE_CLIENT_ID
-            if ($clientId) {
-                Write-Host "Using user-assigned managed identity with client ID: $clientId"
-                # Connect using specific managed identity
-                $null = Connect-AzAccount -Identity -AccountId $clientId -ErrorAction Stop
-            } else {
-                Write-Host "Using system-assigned managed identity"
-                # Connect using managed identity
-                $null = Connect-AzAccount -Identity -ErrorAction Stop
-            }
-            
-            # Create storage context using OAuth (managed identity)
+            # Create storage context using OAuth (managed identity already authenticated in profile.ps1)
             $ctx = New-AzStorageContext -StorageAccountName $storageAccountName -UseConnectedAccount
             return $ctx
         } else {
